@@ -47,21 +47,41 @@ def build_directed_graph(entries, center_article_id, center_article_year):
     return G
 
 
-def spherical_layout(G, center_article_id, radius=1):
+def spherical_layout(G, center_article_id, radius=1, start_year=1977, end_year=2024):
     pos = {}
     non_center_nodes = [node for node in G.nodes() if node != center_article_id]
     n = len(non_center_nodes)
+
     # 中心文章放在原点
     pos[center_article_id] = (0, 0, 0)
-    phi = (1 + np.sqrt(5)) / 2  # 黄金比例
-    for i, node in enumerate(non_center_nodes):
-        # Fibonacci 格点法
-        y = 1 - (i / (n - 1)) * 2
-        r = np.sqrt(1 - y * y)
-        theta = 2 * np.pi * i / phi
-        x = r * np.cos(theta)
-        z = r * np.sin(theta)
-        pos[node] = (radius * x, radius * y, radius * z)
+
+    total_years = end_year - start_year + 1
+    degrees_per_year = 360 / total_years
+
+    for node in non_center_nodes:
+        year = G.nodes[node].get('year')
+        if year is not None:
+            # 计算经度
+            theta = (year - start_year) * degrees_per_year * (np.pi / 180)
+
+            # 随机生成纬度
+            phi = np.random.uniform(-np.pi / 2, np.pi / 2)
+
+            x = radius * np.cos(phi) * np.cos(theta)
+            y = radius * np.cos(phi) * np.sin(theta)
+            z = radius * np.sin(phi)
+            pos[node] = (x, y, z)
+        else:
+            # 对于年份未知的节点，使用原来的 Fibonacci 格点法
+            index = non_center_nodes.index(node)
+            phi = (1 + np.sqrt(5)) / 2  # 黄金比例
+            y_coord = 1 - (index / (n - 1)) * 2
+            r = np.sqrt(1 - y_coord * y_coord)
+            theta = 2 * np.pi * index / phi
+            x = r * np.cos(theta)
+            z = r * np.sin(theta)
+            pos[node] = (radius * x, radius * y_coord, radius * z)
+
     return pos
 
 
@@ -105,11 +125,31 @@ def visualize_3d_graph(G, center_article_id):
         mode='markers',
         hovertext=node_text,
         marker=dict(
-            size=5,
+            size=3,
             color='lightblue',
-            line_width=0.5))
+            line_width=0.2))
 
-    fig = go.Figure(data=[edge_trace, node_trace])
+    # 绘制每 30 度的经线
+    radius = 1
+    meridian_traces = []
+    for theta_deg in range(0, 360, 30):
+        theta = theta_deg * np.pi / 180
+        phi_values = np.linspace(-np.pi / 2, np.pi / 2, 100)
+        x_meridian = radius * np.cos(phi_values) * np.cos(theta)
+        y_meridian = radius * np.cos(phi_values) * np.sin(theta)
+        z_meridian = radius * np.sin(phi_values)
+
+        meridian_trace = go.Scatter3d(
+            x=x_meridian,
+            y=y_meridian,
+            z=z_meridian,
+            mode='lines',
+            line=dict(color='red', width=1),
+            hoverinfo='none'
+        )
+        meridian_traces.append(meridian_trace)
+
+    fig = go.Figure(data=[edge_trace, node_trace] + meridian_traces)
     fig.update_layout(title='3D Spherical Article Citation Graph with Center Article in the Middle',
                       scene=dict(xaxis_title='X',
                                  yaxis_title='Y',
@@ -123,7 +163,7 @@ def visualize_3d_graph(G, center_article_id):
 
 if __name__ == "__main__":
     # 替换为你的 BibTeX 文件路径
-    bib_file_path = 'path'
+    bib_file_path = '/Users/hanyufeng/downloads/library.bib'
     # 假设中心文章的标题，需清理后作为 ID
     center_article_title = "Spherical codes and designs"
     center_article_id = clean_title(center_article_title)
