@@ -6,9 +6,6 @@ import re
 
 
 def clean_title(title):
-    """
-    清理标题，去除特殊字符，只保留字母、数字和空格
-    """
     return re.sub(r'[^a-zA-Z0-9\s]', '', title).strip().replace(' ', '_')
 
 
@@ -42,7 +39,6 @@ def build_directed_graph(entries, center_article_id, center_article_year):
         if entry_id != center_article_id:
             G.add_edge(entry_id, center_article_id)
 
-    # 明确为中心文章节点添加年份信息
     G.add_node(center_article_id, year=center_article_year)
     return G
 
@@ -52,7 +48,7 @@ def spherical_layout(G, center_article_id, radius=1, start_year=1977, end_year=2
     non_center_nodes = [node for node in G.nodes() if node != center_article_id]
     n = len(non_center_nodes)
 
-    # 中心文章放在原点
+    
     pos[center_article_id] = (0, 0, 0)
 
     total_years = end_year - start_year + 1
@@ -64,7 +60,7 @@ def spherical_layout(G, center_article_id, radius=1, start_year=1977, end_year=2
             # 计算经度
             theta = (year - start_year) * degrees_per_year * (np.pi / 180)
 
-            # 随机生成纬度
+
             phi = np.random.uniform(-np.pi / 2, np.pi / 2)
 
             x = radius * np.cos(phi) * np.cos(theta)
@@ -72,7 +68,7 @@ def spherical_layout(G, center_article_id, radius=1, start_year=1977, end_year=2
             z = radius * np.sin(phi)
             pos[node] = (x, y, z)
         else:
-            # 对于年份未知的节点，使用原来的 Fibonacci 格点法
+            
             index = non_center_nodes.index(node)
             phi = (1 + np.sqrt(5)) / 2  # 黄金比例
             y_coord = 1 - (index / (n - 1)) * 2
@@ -154,7 +150,7 @@ def visualize_3d_graph(G, center_article_id):
                       scene=dict(xaxis_title='X',
                                  yaxis_title='Y',
                                  zaxis_title='Z'))
-    # 保存为 HTML 文件，包含 plotly.js 库
+    
     html_filename = '3d_citation_graph.html'
     fig.write_html(html_filename)
     print(f"图形已保存为 {html_filename}")
@@ -164,7 +160,6 @@ def visualize_3d_graph(G, center_article_id):
 if __name__ == "__main__":
     # 替换为你的 BibTeX 文件路径
     bib_file_path = '/Users/hanyufeng/downloads/library.bib'
-    # 假设中心文章的标题，需清理后作为 ID
     center_article_title = "Spherical codes and designs"
     center_article_id = clean_title(center_article_title)
     center_article_year = 1977  # 中心文章的年份
