@@ -4,4 +4,4 @@ We want to creat a graph for articles, which cited 'Spherical codes and designs'
 
 
 
-we will get some tips in how to use python to get bib files.
+we will use some tips to get bib files.
