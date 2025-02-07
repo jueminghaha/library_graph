@@ -158,11 +158,10 @@ def visualize_3d_graph(G, center_article_id):
 
 
 if __name__ == "__main__":
-    # 替换为你的 BibTeX 文件路径
     bib_file_path = '/Users/hanyufeng/downloads/library.bib'
     center_article_title = "Spherical codes and designs"
     center_article_id = clean_title(center_article_title)
-    center_article_year = 1977  # 中心文章的年份
+    center_article_year = 1977
     entries = parse_bib_file(bib_file_path)
     graph = build_directed_graph(entries, center_article_id, center_article_year)
     visualize_3d_graph(graph, center_article_id)
